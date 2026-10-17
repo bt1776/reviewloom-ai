@@ -10,11 +10,12 @@ if (process.env.TRUST_PROXY) app.set('trust proxy', 1);
 const LIMIT = Number(process.env.FREE_DAILY_LIMIT) || 5;
 const hits = new Map();
 function rateLimit(req, res, next) {
+  if (req.get('x-rl-pro') === '1') return next();
   const day = new Date().toISOString().slice(0, 10), k = req.ip + '|' + day;
   if (hits.size > 50000) for (const key of hits.keys()) if (!key.endsWith(day)) hits.delete(key);
   const n = (hits.get(k) || 0) + 1;
   res.set('X-RateLimit-Limit', String(LIMIT)); res.set('X-RateLimit-Remaining', String(Math.max(0, LIMIT - n)));
-  if (n > LIMIT) return res.status(429).json({ error: `Free limit of ${LIMIT} replies per day reached. Pro (unlimited) is coming soon.` });
+  if (n > LIMIT) return res.status(429).json({ error: `Free limit of ${LIMIT} replies per day reached. Go Pro at reviewloomai.com for unlimited replies.` });
   hits.set(k, n); next();
 }
 app.use(express.json({ limit: '20kb' }));

@@ -63,12 +63,38 @@ app.post('/api/generate', rateLimit, async (req, res) => {
   res.json({ source: 'template', ...generateTemplates(o) });
 });
 
-app.post('/api/subscribe', (req, res) => {
-  const email = String((req.body || {}).email || '').trim().toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 254) return res.status(400).json({ error: 'Please enter a valid email.' });
+function saveLocal(email) {
   let list = [];
   try { list = JSON.parse(fs.readFileSync(DATA, 'utf8')); } catch {}
   if (!list.some(s => s.email === email)) { list.push({ email, at: new Date().toISOString() }); fs.writeFileSync(DATA, JSON.stringify(list, null, 2)); }
+}
+
+// Returns true on success (incl. already subscribed); throws on failure. Never logs the key.
+async function buttondownSubscribe(email, ip) {
+  const r = await fetch('https://api.buttondown.com/v1/subscribers', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Token ' + process.env.BUTTONDOWN_API_KEY,
+      'Content-Type': 'application/json',
+      'X-Buttondown-Collision-Behavior': 'add', // merge tags instead of 400 for existing subscribers
+    },
+    body: JSON.stringify({ email_address: email, tags: ['reviewloom'], ...(ip ? { ip_address: ip } : {}) }),
+    signal: AbortSignal.timeout(10000),
+  });
+  if (r.ok) return true;
+  const text = (await r.text().catch(() => '')).slice(0, 500);
+  if (r.status === 400 && /already|exists|duplicate/i.test(text)) return true;
+  throw new Error(`Buttondown HTTP ${r.status}: ${text}`);
+}
+
+app.post('/api/subscribe', async (req, res) => {
+  const email = String((req.body || {}).email || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 254) return res.status(400).json({ error: 'Please enter a valid email.' });
+  if (process.env.BUTTONDOWN_API_KEY) {
+    try { await buttondownSubscribe(email, req.ip); return res.json({ ok: true }); }
+    catch (e) { console.error('Buttondown subscribe failed, saving locally:', e.message); }
+  }
+  try { saveLocal(email); } catch (e) { console.error('Local subscriber save failed:', e.message); return res.status(500).json({ error: 'Could not subscribe right now. Please try again.' }); }
   res.json({ ok: true });
 });
 

@@ -1,16 +1,19 @@
 {
   "name": "reviewloom-ai",
   "version": "1.0.0",
-  "description": "",
+  "description": "ReviewLoom AI: AI Google review reply generator",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test test/"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "express": "^4.22.3"
+    "express": "^4.22.3",
+    "pg": "^8.23.1",
+    "stripe": "^23.0.0"
   }
 }

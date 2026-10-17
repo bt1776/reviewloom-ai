@@ -5,6 +5,7 @@ const { generateTemplates } = require('./lib/templates');
 const app = express();
 const PORT = process.env.PORT || 3456;
 const DATA = path.join(__dirname, 'data', 'subscribers.json');
+fs.mkdirSync(path.dirname(DATA), { recursive: true });
 if (process.env.TRUST_PROXY) app.set('trust proxy', 1);
 const LIMIT = Number(process.env.FREE_DAILY_LIMIT) || 5;
 const hits = new Map();

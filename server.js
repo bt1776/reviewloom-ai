@@ -73,4 +73,5 @@ app.post('/api/subscribe', (req, res) => {
 });
 
 app.get('/healthz', (_, res) => res.json({ ok: true, llm: !!(process.env.XAI_API_KEY || process.env.OPENAI_API_KEY) }));
-app.listen(PORT, '127.0.0.1', () => console.log('ReviewLoom AI on http://127.0.0.1:' + PORT));
+const HOST = process.env.HOST || (process.env.RENDER ? '0.0.0.0' : '127.0.0.1');
+app.listen(PORT, HOST, () => console.log('ReviewLoom AI on http://' + HOST + ':' + PORT));

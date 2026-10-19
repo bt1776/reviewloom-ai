@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Your account | ReviewLoom AI</title><meta name="robots" content="noindex"><link rel="icon" href="/logo.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"></head>
+<body><header class="nav"><div class="wrap"><a class="logo" href="/"><img src="/logo.svg" alt="" width="28" height="28"> ReviewLoom<span> AI</span></a>
+<nav><a href="/#generator">Try it</a><a class="hide-sm" href="/#pricing">Pricing</a><a href="/account">Account</a></nav></div></header>
+<main class="wrap acct">
+<section id="signin" class="card" hidden><h1>Sign in</h1><p>Enter your email and we will send you a sign-in link. No password needed. A free account gets you 5 replies a day.</p>
+<form id="signinForm" class="row"><input type="email" id="siEmail" required placeholder="you@yourbusiness.com" autocomplete="email"><button class="btn">Email me a link</button></form><p id="siMsg" class="small"></p></section>
+
+<div id="acct" hidden>
+<p id="banner" class="card banner" hidden></p>
+<section class="card"><h1>Your account</h1>
+<p><b>Email:</b> <span id="aEmail"></span><br><b>Plan:</b> <span id="aPlan"></span><br><b>Replies today:</b> <span id="aUsage"></span></p>
+<div class="row"><button class="btn" id="upgradeBtn" hidden>Go Pro for $9/mo</button><button class="btn ghost" id="billingBtn" hidden>Manage billing</button><button class="btn ghost" id="logoutBtn">Log out</button></div><p id="aMsg" class="err"></p></section>
+
+<section class="card"><h2>Business profile</h2>
+<p id="profLock" class="small" hidden>Pro members can save their business name, type, default tone and length so the generator is prefilled every time.</p>
+<form id="profForm"><div class="grid">
+<label>Business name<input id="businessName" maxlength="80" placeholder="e.g. Desert Bloom Cafe"></label>
+<label>Business type<input id="businessType" maxlength="60" placeholder="e.g. cafe, salon, HVAC"></label>
+<label>Default tone<select id="tone"><option>warm</option><option>professional</option><option>upbeat</option><option>apologetic</option></select></label>
+<label>Default length<select id="length"><option>short</option><option selected>medium</option><option>long</option></select></label>
+</div><button class="btn" id="saveBtn">Save profile</button> <span id="profMsg" class="small"></span></form></section>
+
+<section class="card"><h2>Recent replies</h2><div id="history"><p class="small">Pro members see their last 20 generated replies here.</p></div></section>
+</div>
+</main>
+<footer class="wrap small">&copy; 2026 ReviewLoom AI by Bold Forge, LLC &middot; Surprise, AZ &middot; <a href="/privacy.html">Privacy</a> &middot; <a href="/terms.html">Terms</a></footer>
+<script src="/account.js"></script></body></html>

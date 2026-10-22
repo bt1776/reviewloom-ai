@@ -29,7 +29,7 @@ $('genForm').addEventListener('submit', async e => {
     if (j.usage) showQuota(j.usage);
     if (!r.ok) {
       const err = new Error(j.error || 'Something went wrong');
-      if (r.status === 429) { $('err').textContent = j.error + ' '; const l = document.createElement('a'); l.href = j.signedIn ? '#pricing' : '/account'; l.textContent = j.signedIn ? 'See Pro' : 'Sign in free'; $('err').append(l); throw null; }
+      if (r.status === 429) { showUpsell(j); throw null; }
       throw err;
     }
     $('results').innerHTML = '';
@@ -47,3 +47,16 @@ $('newsForm').addEventListener('submit', async e => {
   const { r, j } = await api('/api/subscribe', { method: 'POST', body: JSON.stringify({ email: $('email').value }) });
   $('newsMsg').textContent = r.ok ? 'Thanks! You are on the list.' : j.error; if (r.ok) $('email').value = '';
 });
+
+function showUpsell(j) {
+  const e = $('err'); e.textContent = '';
+  const box = document.createElement('div'); box.className = 'upsell';
+  const h = document.createElement('strong'); h.textContent = "You've used today's free replies.";
+  const p = document.createElement('p');
+  p.textContent = (j.signedIn ? 'Go Pro for unlimited replies, saved business profile and history.' : 'Sign in free for 5 replies a day, or go Pro for unlimited.') + ' Founding member offer: the first 25 Pro users get $5/mo for life (code FOUNDER).';
+  const row = document.createElement('div'); row.className = 'row';
+  const pro = document.createElement('a'); pro.className = 'btn'; pro.href = '/account?upgrade=1'; pro.textContent = 'Go Pro';
+  row.append(pro);
+  if (!j.signedIn) { const s = document.createElement('a'); s.className = 'btn ghost'; s.href = '/account'; s.textContent = 'Sign in free'; row.append(s); }
+  box.append(h, p, row); e.append(box);
+}

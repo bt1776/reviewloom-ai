@@ -15,7 +15,7 @@ async function init() {
   $('aEmail').textContent = u.email;
   $('aPlan').textContent = u.pro ? 'Pro ($9/mo), unlimited replies' : 'Free, 5 replies a day';
   $('aUsage').textContent = u.pro ? `${j.usage.used} (unlimited)` : `${j.usage.used} of ${j.usage.limit}`;
-  $('upgradeBtn').hidden = u.pro; $('billingBtn').hidden = !u.has_billing;
+  $('upgradeBtn').hidden = u.pro; $('founderNote').hidden = u.pro; $('billingBtn').hidden = !u.has_billing;
   if (qs.get('welcome')) { $('banner').hidden = false; $('banner').textContent = u.pro ? 'Welcome to Pro! You now have unlimited replies.' : 'Thanks! Your payment is processing. This page will show Pro in a moment; refresh if it does not.'; }
   const wantUpgrade = !u.pro && (qs.get('upgrade') || localStorage.getItem('rl_upgrade'));
   localStorage.removeItem('rl_upgrade');

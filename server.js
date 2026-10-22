@@ -271,13 +271,24 @@ function createApp({ store, stripe } = {}) {
       return res.json({ url });
     }
     const base = process.env.APP_URL || SITE;
+    // Founding Member offer: pre-apply FOUNDER while it's active (default for all checkouts, or a ?promo= / body.promo code).
+    // Falls back to allow_promotion_codes if the code is exhausted/inactive or the lookup fails.
+    const promoParam = String((req.body && req.body.promo) || req.query.promo || 'FOUNDER').trim().toUpperCase();
+    let promo = { allow_promotion_codes: true };
+    if (promoParam && promoParam !== 'NONE' && /^[A-Z0-9_-]{1,40}$/.test(promoParam)) {
+      try {
+        const found = await stripe.promotionCodes.list({ code: promoParam, active: true, limit: 1 });
+        const pc = found && found.data && found.data[0];
+        if (pc && (!pc.max_redemptions || pc.times_redeemed < pc.max_redemptions)) promo = { discounts: [{ promotion_code: pc.id }] };
+      } catch (e) { console.error('Promotion code lookup failed:', e.message); }
+    }
     const s = await stripe.checkout.sessions.create({
       mode: 'subscription',
       line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
       ...(u.stripe_customer_id ? { customer: u.stripe_customer_id } : { customer_email: u.email }),
       client_reference_id: u.id,
       subscription_data: { metadata: { user_id: u.id } },
-      allow_promotion_codes: true,
+      ...promo,
       success_url: `${base}/account?welcome=1`,
       cancel_url: `${base}/#pricing`,
     });

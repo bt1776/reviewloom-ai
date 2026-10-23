@@ -156,3 +156,20 @@ test('static routes and health', async () => {
   const idx = await (await req('/')).text(); assert.ok(!idx.includes('x-rl-pro') && !/X-RL-Pro/.test(await (await req('/app.js')).text()));
   assert.ok(!(await (await req('/app.js')).text()).includes('rr_pro'));
 });
+
+test('grader: validates input and returns score + tips', async () => {
+  const bad = await req('/api/grade', { method: 'POST', body: { review: 'x' } });
+  assert.strictEqual(bad.status, 400);
+  const r = await req('/api/grade', { method: 'POST', body: { rating: 1, review: 'The technician was late and rude.', reply: 'Thanks.' } });
+  assert.strictEqual(r.status, 200);
+  const j = await r.json();
+  assert.strictEqual(j.source, 'heuristic'); assert.ok(j.score >= 0 && j.score <= 100); assert.ok(j.tips.length > 0);
+  const good = await (await req('/api/grade', { method: 'POST', body: { rating: 1, review: 'The technician was late and rude.', reply: 'Thank you for telling us, and I am sorry our technician arrived late and was rude. That is not how we treat customers. Please call me at (555) 123-4567 so I can make this right. – Dana, Owner' } })).json();
+  assert.ok(good.score > j.score);
+});
+
+test('new SEO and tool pages load', async () => {
+  for (const p of ['/dentist-review-response-examples.html', '/contractor-review-response-examples.html', '/auto-repair-review-response-examples.html', '/salon-spa-review-response-examples.html', '/pet-grooming-review-response-examples.html', '/review-response-grader.html']) {
+    const r = await req(p); assert.strictEqual(r.status, 200, p); assert.match(await r.text(), /ReviewLoom AI/);
+  }
+});

@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { generateTemplates } = require('./lib/templates');
+const { gradeHeuristic } = require('./lib/grader');
 const { createStore } = require('./lib/store');
 const mail = require('./lib/mail');
 
@@ -58,11 +59,37 @@ function allow(key, max, windowMs) {
   arr.push(t); throttle.set(key, arr); return true;
 }
 
+function llmConfig() {
+  if (process.env.XAI_API_KEY) return { key: process.env.XAI_API_KEY, base: 'https://api.x.ai/v1', model: process.env.LLM_MODEL || 'grok-3-mini' };
+  if (process.env.OPENAI_API_KEY) return { key: process.env.OPENAI_API_KEY, base: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1', model: process.env.LLM_MODEL || 'gpt-4o-mini' };
+  return null;
+}
+
+async function llmGrade(review, reply, rating) {
+  const c = llmConfig(); if (!c) return null;
+  const prompt = `You grade a business owner's public reply to a Google review. Criteria: thanks the reviewer, references specifics, apologizes and takes ownership when negative, invites offline contact for problems, not defensive, no public freebies, no private details, human tone, appropriate length, signed by a person.
+Star rating: ${rating || 'unknown'}.
+Review: """${review}"""
+Reply: """${reply}"""
+Return ONLY JSON: {"score": integer 0-100, "strengths": [up to 4 short strings], "tips": [up to 5 short actionable strings]}`;
+  const r = await fetch(c.base + '/chat/completions', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + c.key },
+    body: JSON.stringify({ model: c.model, temperature: 0.2, messages: [{ role: 'user', content: prompt }] }),
+    signal: AbortSignal.timeout(20000)
+  });
+  if (!r.ok) throw new Error('LLM HTTP ' + r.status);
+  const j = await r.json();
+  const txt = j.choices[0].message.content.replace(/```json|```/g, '').trim();
+  const o = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
+  const score = Math.max(0, Math.min(100, Math.round(Number(o.score))));
+  if (!Number.isFinite(score)) throw new Error('bad score');
+  const arr = a => (Array.isArray(a) ? a : []).filter(s => typeof s === 'string').map(s => s.slice(0, 300)).slice(0, 5);
+  return { score, grade: score >= 85 ? 'A' : score >= 70 ? 'B' : score >= 55 ? 'C' : score >= 40 ? 'D' : 'F', strengths: arr(o.strengths), tips: arr(o.tips) };
+}
+
 async function llmReplies(o) {
-  let key, base, model;
-  if (process.env.XAI_API_KEY) { key = process.env.XAI_API_KEY; base = 'https://api.x.ai/v1'; model = process.env.LLM_MODEL || 'grok-3-mini'; }
-  else if (process.env.OPENAI_API_KEY) { key = process.env.OPENAI_API_KEY; base = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'; model = process.env.LLM_MODEL || 'gpt-4o-mini'; }
-  else return null;
+  const c = llmConfig(); if (!c) return null;
+  const { key, base, model } = c;
   const prompt = `Write 3 distinct reply options to this Google review on behalf of the business owner.
 Business: ${o.businessName || 'our business'} (${o.businessType || 'small business'}). Star rating: ${o.rating || 'unknown'}. Tone: ${o.tone}. Length: ${o.length} (short=1-2 sentences, medium=3-4, long=5-6).
 Rules: sound human, reference specifics from the review, never invent facts or offer discounts, no hashtags or emojis. For negative reviews, apologize, take ownership, and invite them to continue offline.
@@ -260,6 +287,20 @@ function createApp({ store, stripe } = {}) {
     if (!out) out = { source: 'template', ...generateTemplates(o) };
     if (user && user.pro) store.addReply(user.id, { review, rating: o.rating, tone: o.tone, length: o.length, replies: out.replies }).catch(e => console.error('Save reply failed:', e.message));
     res.json({ ...out, usage });
+  }));
+
+  // ---- free reply grader (separate per-IP throttle, does not use generator quota) ----
+  app.post('/api/grade', wrapA(async (req, res) => {
+    const b = req.body || {};
+    const review = String(b.review || '').trim().slice(0, 3000), reply = String(b.reply || '').trim().slice(0, 3000);
+    if (review.length < 3 || reply.length < 3) return res.status(400).json({ error: 'Please paste both the review and your reply.' });
+    if (!allow('g:' + req.ip, Number(process.env.GRADE_HOURLY_LIMIT) || 20, 36e5)) return res.status(429).json({ error: 'Too many grades this hour. Please try again later.' });
+    const rating = [1, 2, 3, 4, 5].includes(Number(b.rating)) ? Number(b.rating) : null;
+    let out = null;
+    try { const g = await llmGrade(review, reply, rating); if (g) out = { source: 'llm', ...g }; }
+    catch (e) { console.error('LLM grade failed, falling back:', e.message); }
+    if (!out) out = { source: 'heuristic', ...gradeHeuristic(review, reply, rating) };
+    res.json(out);
   }));
 
   // ---- billing ----

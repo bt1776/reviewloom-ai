@@ -173,3 +173,32 @@ test('new SEO and tool pages load', async () => {
     const r = await req(p); assert.strictEqual(r.status, 200, p); assert.match(await r.text(), /ReviewLoom AI/);
   }
 });
+
+test('admin outreach: auth, dry run, cap, send', async () => {
+  const items = [{ to: 'a@example.com', subject: 'Hi', body: 'Hello there' }, { to: 'b@example.com', subject: 'Yo', body: 'Second' }];
+  const post = (q, headers, body = items) => req('/admin/outreach' + q, { method: 'POST', headers, body });
+  delete process.env.ADMIN_TOKEN;
+  assert.strictEqual((await post('', { Authorization: 'Bearer x' })).status, 404);
+  process.env.ADMIN_TOKEN = 'tok-' + 'a'.repeat(40);
+  process.env.OUTREACH_DELAY_MS = '5';
+  const auth = { Authorization: 'Bearer ' + process.env.ADMIN_TOKEN };
+  assert.strictEqual((await post('', {})).status, 401);
+  assert.strictEqual((await post('', { Authorization: 'Bearer wrong' })).status, 401);
+  const before = mail.sent.length;
+  let r = await post('', auth); assert.strictEqual(r.status, 200);
+  let j = await r.json();
+  assert.strictEqual(j.dryRun, true); assert.strictEqual(j.previews.length, 2);
+  assert.strictEqual(j.previews[0].from, 'Brad at ReviewLoom AI <hello@reviewloomai.com>');
+  assert.strictEqual(j.previews[0].replyTo, 'hello@reviewloomai.com');
+  assert.strictEqual(mail.sent.length, before);
+  assert.strictEqual((await post('', auth, Array(21).fill(items[0]))).status, 400);
+  assert.strictEqual((await post('', auth, [{ to: 'bad', subject: 's', body: 'b' }])).status, 400);
+  assert.strictEqual((await post('', auth, { to: 'a@example.com' })).status, 400);
+  r = await post('?send=true', auth); j = await r.json();
+  assert.strictEqual(j.dryRun, false); assert.strictEqual(j.results.length, 2);
+  assert.ok(j.results.every(x => x.ok));
+  const last = mail.sent.slice(-2);
+  assert.deepStrictEqual(last.map(x => x.to), ['a@example.com', 'b@example.com']);
+  assert.strictEqual(last[0].replyTo, 'hello@reviewloomai.com');
+  delete process.env.ADMIN_TOKEN;
+});

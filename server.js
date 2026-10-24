@@ -355,6 +355,40 @@ function createApp({ store, stripe } = {}) {
     res.json({ ok: true });
   });
 
+  // ---- admin outreach (Bearer ADMIN_TOKEN; 404 when unset; dry run unless ?send=true) ----
+  const OUTREACH_FROM = 'Brad at ReviewLoom AI <hello@reviewloomai.com>';
+  const OUTREACH_REPLY_TO = 'hello@reviewloomai.com';
+  const adminAuth = (req, res, next) => {
+    const token = process.env.ADMIN_TOKEN;
+    if (!token) return res.status(404).json({ error: 'Not found' });
+    const m = /^Bearer (.+)$/.exec(req.get('authorization') || '');
+    const a = crypto.createHash('sha256').update(m ? m[1] : '').digest();
+    const b = crypto.createHash('sha256').update(token).digest();
+    if (!m || !crypto.timingSafeEqual(a, b)) return res.status(401).json({ error: 'Unauthorized' });
+    next();
+  };
+  app.post('/admin/outreach', adminAuth, wrapA(async (req, res) => {
+    const list = req.body;
+    if (!Array.isArray(list) || !list.length) return res.status(400).json({ error: 'Body must be a non-empty JSON array of {to, subject, body}.' });
+    if (list.length > 20) return res.status(400).json({ error: 'At most 20 emails per call.' });
+    const emailRe = /^[^\s@<>,]+@[^\s@<>,]+\.[^\s@<>,]+$/;
+    for (const [i, e] of list.entries()) {
+      if (!e || typeof e.to !== 'string' || !emailRe.test(e.to.trim()) || typeof e.subject !== 'string' || !e.subject.trim() || /[\r\n]/.test(e.subject) || typeof e.body !== 'string' || !e.body.trim())
+        return res.status(400).json({ error: `Item ${i}: need valid to, single-line subject, and non-empty plain text body.` });
+    }
+    const send = req.query.send === 'true';
+    const msgs = list.map(e => ({ to: e.to.trim(), subject: e.subject.trim(), text: e.body, from: OUTREACH_FROM, replyTo: OUTREACH_REPLY_TO }));
+    if (!send) return res.json({ dryRun: true, count: msgs.length, previews: msgs.map(({ to, subject, text, from, replyTo }) => ({ from, replyTo, to, subject, body: text })) });
+    const delay = Number(process.env.OUTREACH_DELAY_MS ?? 2000);
+    const results = [];
+    for (const [i, m] of msgs.entries()) {
+      if (i > 0) await new Promise(r => setTimeout(r, delay));
+      try { const r = await mail.sendMail(m); results.push({ to: m.to, ok: true, id: r && r.id ? r.id : null, dev: !!(r && r.dev) }); }
+      catch (err) { results.push({ to: m.to, ok: false, error: err.message }); }
+    }
+    res.json({ dryRun: false, count: results.length, results });
+  }));
+
   app.get('/healthz', (_, res) => res.json({ ok: true, llm: !!(process.env.XAI_API_KEY || process.env.OPENAI_API_KEY), store: store.kind }));
 
   app.use((err, req, res, next) => { console.error('Error:', err.message); if (res.headersSent) return next(err); res.status(500).json({ error: 'Something went wrong. Please try again.' }); });

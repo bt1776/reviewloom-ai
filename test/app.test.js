@@ -169,7 +169,7 @@ test('grader: validates input and returns score + tips', async () => {
 });
 
 test('new SEO and tool pages load', async () => {
-  for (const p of ['/dentist-review-response-examples.html', '/contractor-review-response-examples.html', '/auto-repair-review-response-examples.html', '/salon-spa-review-response-examples.html', '/pet-grooming-review-response-examples.html', '/review-response-grader.html']) {
+  for (const p of ['/dentist-review-response-examples.html', '/contractor-review-response-examples.html', '/auto-repair-review-response-examples.html', '/salon-spa-review-response-examples.html', '/pet-grooming-review-response-examples.html', '/review-response-grader.html', '/hotel-review-response-examples.html']) {
     const r = await req(p); assert.strictEqual(r.status, 200, p); assert.match(await r.text(), /ReviewLoom AI/);
   }
 });

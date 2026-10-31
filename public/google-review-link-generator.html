@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Free Google Review Link Generator + QR Code | ReviewLoom AI</title>
+<meta name="description" content="Create your direct Google review link from a Place ID or Maps URL, download a free QR code, and copy ready-to-send text and email review requests. Free tool from ReviewLoom AI.">
+<link rel="canonical" href="https://reviewloomai.com/google-review-link-generator.html">
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ReviewLoom AI">
+<meta property="og:url" content="https://reviewloomai.com/google-review-link-generator.html">
+<meta property="og:title" content="Free Google Review Link Generator + QR Code | ReviewLoom AI">
+<meta property="og:description" content="Create your direct Google review link from a Place ID or Maps URL, download a free QR code, and copy ready-to-send text and email review requests. Free tool from ReviewLoom AI.">
+<meta property="og:image" content="https://reviewloomai.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Google Review Link Generator + QR Code | ReviewLoom AI">
+<meta name="twitter:description" content="Create your direct Google review link from a Place ID or Maps URL, download a free QR code, and copy ready-to-send text and email review requests. Free tool from ReviewLoom AI.">
+<meta name="twitter:image" content="https://reviewloomai.com/og-image.png">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "WebApplication", "name": "Google Review Link Generator by ReviewLoom AI", "url": "https://reviewloomai.com/google-review-link-generator.html", "applicationCategory": "BusinessApplication", "operatingSystem": "Any", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "publisher": {"@type": "Organization", "name": "Bold Forge, LLC", "url": "https://boldforge.ai"}}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is a Google review link?", "acceptedAnswer": {"@type": "Answer", "text": "It is a direct link that opens the Google review box for your business, so customers can leave a review in one tap instead of searching for you on Maps."}}, {"@type": "Question", "name": "How do I find my Google Place ID?", "acceptedAnswer": {"@type": "Answer", "text": "Use Google's free Place ID Finder: search your business name, click your listing on the map, and copy the Place ID shown (it usually starts with ChIJ). You can also paste a Google Maps link that contains place_id."}}, {"@type": "Question", "name": "Is this Google review link generator free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. ReviewLoom AI's review link generator is free, needs no signup, and creates your link, QR code, and request templates right in your browser."}}, {"@type": "Question", "name": "Can I print the QR code?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Download the PNG and add it to receipts, counter signs, invoices, or business cards. Customers scan it to open your review form."}}, {"@type": "Question", "name": "Can I offer a discount for a Google review?", "acceptedAnswer": {"@type": "Answer", "text": "No. Google doesn't allow incentives for reviews. Ask every customer for honest feedback and leave it at that."}}]}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>.rl-out textarea,.rl-out input{width:100%}.rl-out canvas{max-width:240px;width:100%;height:auto;border:1px solid #e6e8f0;border-radius:8px}.rl-out .row{margin:6px 0 14px}</style>
+</head>
+<body>
+<header class="nav"><div class="wrap"><a class="logo" href="/"><img src="/logo.svg" alt="" width="28" height="28"> ReviewLoom<span> AI</span></a><nav><a href="/#generator">Reply generator</a><a href="/review-response-grader.html">Free grader</a></nav></div></header>
+<main class="wrap" style="margin:40px auto">
+<article class="card prose">
+<h1>Free Google review link generator</h1>
+<p>Make it easy for happy customers to review you. Build your direct Google review link, download a QR code, and copy ready-made text and email requests. Everything runs in your browser and nothing is saved. A free tool from ReviewLoom AI.</p>
+<form id="linkForm">
+<div class="grid">
+<label>Business name<input id="bizName" maxlength="80" placeholder="e.g. Desert Bloom Cafe"></label>
+<label>City (optional)<input id="bizCity" maxlength="60" placeholder="e.g. Surprise, AZ"></label>
+</div>
+<h2>1. Find your Place ID</h2>
+<ol>
+<li>Open Google's free <a href="https://developers.google.com/maps/documentation/places/web-service/place-id#find-id" target="_blank" rel="noopener">Place ID Finder</a> and type your business name and city.</li>
+<li>Click your business in the results. Copy the <b>Place ID</b> it shows (it usually starts with <code>ChIJ</code>).</li>
+<li>Not sure it's you? <a id="mapsSearch" href="https://www.google.com/maps" target="_blank" rel="noopener">Check your listing on Google Maps</a> first.</li>
+</ol>
+<p class="small">Your review link is: <code>https://search.google.com/local/writereview?placeid=PLACE_ID</code>. If you manage your Business Profile, Google's "Ask for reviews" button also gives you a short link that works too.</p>
+<h2>2. Paste your Place ID or Maps URL</h2>
+<label>Place ID or Google Maps URL<input id="placeInput" required placeholder="ChIJ... or a Maps link containing place_id"></label>
+<button class="btn" type="submit">Create my review link</button>
+</form>
+<p id="err" class="err"></p>
+<div id="out" class="rl-out" hidden>
+<h2>3. Your Google review link</h2>
+<div class="row"><input id="link" readonly><button class="btn ghost" type="button" data-copy="link">Copy</button> <a id="testLink" href="#" target="_blank" rel="noopener">Test it</a></div>
+<h3>QR code</h3>
+<canvas id="qr" width="240" height="240" aria-label="QR code for your Google review link"></canvas>
+<p><a id="dl" class="btn" href="#">Download QR code (PNG)</a></p>
+<h3>Text message request</h3>
+<textarea id="sms" rows="3"></textarea><div class="row"><button class="btn ghost" type="button" data-copy="sms">Copy</button></div>
+<h3>Email request</h3>
+<textarea id="email" rows="9"></textarea><div class="row"><button class="btn ghost" type="button" data-copy="email">Copy</button></div>
+</div>
+<h2>Tips for asking</h2>
+<p>Ask right after a good moment, ask everyone (not just happy customers), and never offer a reward. Read our full guide on <a href="/how-to-ask-customers-for-google-reviews.html">how to ask customers for Google reviews</a>, then use the <a href="/#generator">ReviewLoom AI reply generator</a> to answer the reviews you get.</p>
+<h2>Frequently asked questions</h2>
+<details><summary>What is a Google review link?</summary><p>It is a direct link that opens the Google review box for your business, so customers can leave a review in one tap instead of searching for you on Maps.</p></details>
+<details><summary>How do I find my Google Place ID?</summary><p>Use Google's free Place ID Finder: search your business name, click your listing on the map, and copy the Place ID shown (it usually starts with ChIJ). You can also paste a Google Maps link that contains place_id.</p></details>
+<details><summary>Is this Google review link generator free?</summary><p>Yes. ReviewLoom AI's review link generator is free, needs no signup, and creates your link, QR code, and request templates right in your browser.</p></details>
+<details><summary>Can I print the QR code?</summary><p>Yes. Download the PNG and add it to receipts, counter signs, invoices, or business cards. Customers scan it to open your review form.</p></details>
+<details><summary>Can I offer a discount for a Google review?</summary><p>No. Google doesn't allow incentives for reviews. Ask every customer for honest feedback and leave it at that.</p></details>
+</article>
+</main>
+<footer class="wrap small">&copy; 2026 ReviewLoom AI by Bold Forge, LLC &middot; Surprise, AZ &middot; <a href="/how-to-respond-to-google-reviews.html">How to respond to Google reviews</a> &middot; <a href="/negative-review-response-examples.html">Negative review examples</a> &middot; <a href="/positive-review-response-examples.html">Positive review examples</a> &middot; <a href="/restaurant-review-response-examples.html">Restaurant review examples</a> &middot; <a href="/dentist-review-response-examples.html">Dentist review examples</a> &middot; <a href="/contractor-review-response-examples.html">Contractor review examples</a> &middot; <a href="/auto-repair-review-response-examples.html">Auto repair review examples</a> &middot; <a href="/salon-spa-review-response-examples.html">Salon & spa review examples</a> &middot; <a href="/pet-grooming-review-response-examples.html">Pet grooming review examples</a> &middot; <a href="/hotel-review-response-examples.html">Hotel review examples</a> &middot; <a href="/how-to-respond-to-yelp-reviews.html">How to respond to Yelp reviews</a> &middot; <a href="/how-to-respond-to-facebook-reviews.html">How to respond to Facebook reviews</a> &middot; <a href="/how-to-ask-customers-for-google-reviews.html">How to ask for Google reviews</a> &middot; <a href="/review-response-templates.html">Review response templates</a> &middot; <a href="/review-response-grader.html">Free reply grader</a> &middot; <a href="/google-review-link-generator.html">Google review link generator</a> &middot; <a href="/privacy.html">Privacy</a> &middot; <a href="/terms.html">Terms</a></footer>
+<script src="/vendor/qrcode.js"></script>
+<script src="/review-link.js"></script>
+</body></html>

@@ -202,3 +202,36 @@ test('admin outreach: auth, dry run, cap, send', async () => {
   assert.strictEqual(last[0].replyTo, 'hello@reviewloomai.com');
   delete process.env.ADMIN_TOKEN;
 });
+
+test('local SEO: city and service appear once in template replies and in the prompt rule', async () => {
+  const { cookie } = await signIn('localseo@example.com');
+  const r = await req('/api/generate', { method: 'POST', cookie, body: { review: 'Great service, friendly tech fixed our AC fast!', rating: 5, tone: 'warm', city: 'Surprise, AZ', service: 'AC repair' } });
+  const j = await r.json();
+  assert.strictEqual(r.status, 200);
+  assert.strictEqual(j.replies.length, 3);
+  for (const t of j.replies) { assert.strictEqual(t.split('Surprise, AZ').length - 1, 1); assert.strictEqual(t.split('AC repair').length - 1, 1); }
+  const { localSeoRule } = require('../server');
+  assert.strictEqual(localSeoRule({}), '');
+  assert.match(localSeoRule({ city: 'Mesa', service: 'plumbing' }), /exactly once/);
+  const { generateTemplates } = require('../lib/templates');
+  const plain = generateTemplates({ review: 'Great place', tone: 'warm', length: 'medium' });
+  assert.strictEqual(plain.replies.length, 3);
+  const cityOnly = generateTemplates({ review: 'Terrible and slow', tone: 'warm', length: 'short', city: 'Mesa' });
+  assert.ok(cityOnly.replies.every(t => t.split('Mesa').length - 1 === 1));
+});
+
+test('review link generator: Place ID extraction, link, templates, page', async () => {
+  const { extractPlaceId, reviewLink, templates } = require('../public/review-link.js');
+  const id = 'ChIJN1t_tDeuEmsRUsoyG83frY4';
+  assert.strictEqual(extractPlaceId(id), id);
+  assert.strictEqual(extractPlaceId(`https://www.google.com/maps/search/?api=1&query=x&query_place_id=${id}`), id);
+  assert.strictEqual(extractPlaceId(`https://www.google.com/maps/place/?q=place_id:${id}`), id);
+  assert.strictEqual(extractPlaceId('https://maps.app.goo.gl/abc'), null);
+  assert.strictEqual(reviewLink(id), `https://search.google.com/local/writereview?placeid=${id}`);
+  assert.match(templates('Desert Bloom', 'L').sms, /Desert Bloom.*L$/);
+  const r = await req('/google-review-link-generator.html');
+  assert.strictEqual(r.status, 200);
+  const h = await r.text();
+  assert.match(h, /FAQPage/); assert.match(h, /how-to-ask-customers-for-google-reviews/); assert.match(h, /vendor\/qrcode\.js/);
+  assert.match(await (await req('/sitemap.xml')).text(), /google-review-link-generator/);
+});

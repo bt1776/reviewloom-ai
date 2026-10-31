@@ -25,7 +25,7 @@ $('genForm').addEventListener('submit', async e => {
   $('genBtn').disabled = true; $('genBtn').textContent = 'Writing...';
   try {
     const { r, j } = await api('/api/generate', { method: 'POST', body: JSON.stringify({
-      review: $('review').value, rating: $('rating').value, businessName: $('businessName').value, businessType: $('businessType').value, tone: $('tone').value, length: $('length').value }) });
+      review: $('review').value, rating: $('rating').value, businessName: $('businessName').value, businessType: $('businessType').value, city: $('city').value, service: $('service').value, tone: $('tone').value, length: $('length').value }) });
     if (j.usage) showQuota(j.usage);
     if (!r.ok) {
       const err = new Error(j.error || 'Something went wrong');

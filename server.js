@@ -87,13 +87,19 @@ Return ONLY JSON: {"score": integer 0-100, "strengths": [up to 4 short strings],
   return { score, grade: score >= 85 ? 'A' : score >= 70 ? 'B' : score >= 55 ? 'C' : score >= 40 ? 'D' : 'F', strengths: arr(o.strengths), tips: arr(o.tips) };
 }
 
+function localSeoRule(o) {
+  const bits = [o.service && `the service "${o.service}"`, o.city && `the city/town "${o.city}"`].filter(Boolean);
+  if (!bits.length) return '';
+  return `Local SEO: in each reply, naturally mention ${bits.join(' and ')} exactly once, woven into a normal sentence. Do not repeat them, list keywords, or force them in awkwardly.\n`;
+}
+
 async function llmReplies(o) {
   const c = llmConfig(); if (!c) return null;
   const { key, base, model } = c;
   const prompt = `Write 3 distinct reply options to this Google review on behalf of the business owner.
 Business: ${o.businessName || 'our business'} (${o.businessType || 'small business'}). Star rating: ${o.rating || 'unknown'}. Tone: ${o.tone}. Length: ${o.length} (short=1-2 sentences, medium=3-4, long=5-6).
 Rules: sound human, reference specifics from the review, never invent facts or offer discounts, no hashtags or emojis. For negative reviews, apologize, take ownership, and invite them to continue offline.
-Return ONLY a JSON array of 3 strings.
+${localSeoRule(o)}Return ONLY a JSON array of 3 strings.
 Review: """${o.review}"""`;
   const r = await fetch(base + '/chat/completions', {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
@@ -280,6 +286,8 @@ function createApp({ store, stripe } = {}) {
       businessType: String(b.businessType || '').slice(0, 60).trim(),
       tone: TONES.includes(b.tone) ? b.tone : 'warm',
       length: LENGTHS.includes(b.length) ? b.length : 'medium',
+      city: String(b.city || '').replace(/[\r\n"]/g, ' ').slice(0, 60).trim(),
+      service: String(b.service || '').replace(/[\r\n"]/g, ' ').slice(0, 60).trim(),
     };
     let out = null;
     try { const r = await llmReplies(o); if (r && r.length) out = { source: 'llm', replies: r }; }
@@ -404,4 +412,4 @@ if (require.main === module) {
   }).catch(e => { console.error('Store init failed:', e.message); process.exit(1); });
 }
 
-module.exports = { createApp };
+module.exports = { localSeoRule, createApp };

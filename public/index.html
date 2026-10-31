@@ -28,35 +28,29 @@
 <header class="nav"><div class="wrap"><a class="logo" href="/"><img src="/logo.svg" alt="" width="28" height="28"> ReviewLoom<span> AI</span></a>
 <nav><a href="#generator">Try it</a><a class="hide-sm" href="#how">How it works</a><a href="#pricing">Pricing</a><a class="hide-sm" href="#faq">FAQ</a><a class="hide-sm" href="/how-to-respond-to-google-reviews.html">Guide</a><a class="hide-sm" href="/review-response-grader.html">Free grader</a><a class="hide-sm" href="/google-review-link-generator.html">Review link</a><a id="acctLink" href="/account">Sign in</a></nav></div></header>
 
-<section class="hero"><div class="wrap">
+<section class="hero"><div class="wrap hero-grid">
+<div class="hero-copy">
 <h1>Reply to every Google review <em>in seconds</em>.</h1>
 <p class="lead">Paste a customer review, pick a tone, and get 3 polished replies ready to copy with ReviewLoom AI. Built for busy small business owners: restaurants, salons, contractors, clinics and shops.</p>
-<a class="btn" href="#generator">Write my reply, free</a><p class="small">Try 2 replies free, no signup. 5 a day with a free account.</p>
-<div class="sample" aria-label="Example review and reply">
-<p class="sample-label">Example</p>
-<div class="sample-before"><span class="stars" aria-label="2 stars">&#9733;&#9733;&#9734;&#9734;&#9734;</span><p>&ldquo;Waited 25 minutes for two lattes and nobody said a word. Coffee was good but the wait was ridiculous.&rdquo;</p></div>
-<div class="sample-after"><b>ReviewLoom AI reply (apologetic tone)</b><p>Thank you for telling us, and I'm sorry you waited 25 minutes without an update. That's not the experience we want for anyone, even when the lattes turn out right. We're changing how we call out delays at the counter. If you're willing, ask for me next time you're in so I can make it right. &ndash; Maria, Desert Bloom Cafe</p></div>
+<p class="small">Try 2 replies free, no signup. 5 a day with a free account.</p>
 </div>
-</div></section>
-
-<section id="generator" class="wrap card gen">
+<div id="generator" class="card gen">
 <h2>Review reply generator</h2>
 <form id="genForm">
 <div class="row-label"><span>Customer review</span><button type="button" class="linkbtn" id="exampleBtn">Try an example</button></div>
 <label class="sr-label"><span class="sr-only">Customer review</span><textarea id="review" required rows="5" placeholder="Paste the Google review here..."></textarea></label>
+<label>Tone<select id="tone"><option>warm</option><option>professional</option><option>upbeat</option><option>apologetic</option></select></label>
+<details class="more"><summary>More options <span class="small">(length, star rating, business, city, service)</span></summary>
 <div class="grid">
+<label>Length<select id="length"><option>short</option><option selected>medium</option><option>long</option></select></label>
 <label>Star rating<select id="rating"><option value="">Auto-detect</option><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></label>
 <label>Business name<input id="businessName" placeholder="e.g. Desert Bloom Cafe"></label>
 <label>Business type<input id="businessType" placeholder="e.g. cafe, salon, HVAC"></label>
-<label>Tone<select id="tone"><option>warm</option><option>professional</option><option>upbeat</option><option>apologetic</option></select></label>
-<label>Length<select id="length"><option>short</option><option selected>medium</option><option>long</option></select></label>
-</div>
-<details class="local"><summary>Mention my city and service (optional, local SEO)</summary>
-<div class="grid">
 <label>City or town<input id="city" maxlength="60" placeholder="e.g. Surprise, AZ"></label>
 <label>Service<input id="service" maxlength="60" placeholder="e.g. AC repair, teeth whitening"></label>
-</div><p class="small">Each reply will mention them once, naturally. No keyword stuffing.</p></details>
-<button class="btn" id="genBtn" type="submit">Generate replies</button> <span id="quota" class="small"></span>
+</div><p class="small">City and service are optional (local SEO): each reply mentions them once, naturally. No keyword stuffing.</p></details>
+<button class="btn btn-lg" id="genBtn" type="submit">Generate replies</button>
+<p id="quota" class="small"></p>
 </form>
 <div id="err" class="err"></div><div id="results"></div>
 <ul class="trust">
@@ -64,7 +58,14 @@
 <li><b>Private by default.</b> Your review is sent to our AI provider to write replies and is not saved, unless you're a Pro member with reply history. <a href="/privacy.html">Privacy policy</a></li>
 <li><b>Made in Surprise, Arizona</b> by Bold Forge, LLC.</li>
 </ul>
-</section>
+</div>
+<div class="sample" aria-label="Example review and reply">
+<p class="sample-label">Example</p>
+<div class="sample-before"><span class="stars" aria-label="2 stars">&#9733;&#9733;&#9734;&#9734;&#9734;</span><p>&ldquo;Waited 25 minutes for two lattes and nobody said a word. Coffee was good but the wait was ridiculous.&rdquo;</p></div>
+<div class="sample-after"><b>ReviewLoom AI reply (apologetic tone)</b><p>Thank you for telling us, and I'm sorry you waited 25 minutes without an update. That's not the experience we want for anyone, even when the lattes turn out right. We're changing how we call out delays at the counter. If you're willing, ask for me next time you're in so I can make it right. &ndash; Maria, Desert Bloom Cafe</p></div>
+</div>
+</div></section>
+
 
 <section id="how" class="wrap"><h2>How it works</h2><div class="steps">
 <div class="card"><b>1</b><h3>Paste the review</h3><p>Copy any Google, Yelp or Facebook review into the box.</p></div>

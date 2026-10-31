@@ -38,3 +38,8 @@ details{background:#fff;border:1px solid #e6e8f0;border-radius:12px;padding:14px
 .row-label{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.9rem}.linkbtn{background:none;border:0;color:#4f46e5;font:inherit;font-weight:700;cursor:pointer;padding:4px 0;text-decoration:underline}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .trust{list-style:none;padding:16px 0 0;margin:18px 0 0;border-top:1px solid #e6e8f0;display:grid;gap:8px;font-size:.9rem;color:#4b5563}.trust li{padding-left:26px;position:relative}.trust li:before{content:"\2713";position:absolute;left:0;top:0;width:18px;height:18px;border-radius:50%;background:#dcfce7;color:#15803d;font-size:.75rem;font-weight:800;display:grid;place-items:center}
+.hero-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:28px 40px;align-items:start;text-align:left}.hero-copy{grid-column:1;grid-row:1}.hero-grid .gen{grid-column:2;grid-row:1/span 2;margin:0;color:#1d2433}.hero-grid .sample{grid-column:1;grid-row:2;margin:0}.hero-grid .lead{margin-left:0}
+.btn-lg{width:100%;padding:16px 24px;font-size:1.15rem;border-radius:12px;margin-top:6px}#quota{text-align:center;margin:8px 0 0}
+details.more{background:#f7f8fc;padding:10px 14px;margin:0 0 12px}details.more summary{font-size:.92rem;color:#4338ca}details.more .grid{margin-top:12px}
+@media (max-width:860px){.hero-grid{grid-template-columns:1fr}.hero-grid .gen,.hero-grid .sample,.hero-copy{grid-column:1;grid-row:auto}.hero-copy{text-align:center}.hero-grid .lead{margin:0 auto 6px}}
+@media (max-width:600px){.hero-grid .gen{padding:18px}.hero-copy .lead{font-size:.98rem;margin-bottom:4px}}

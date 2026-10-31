@@ -258,3 +258,12 @@ test('homepage trust signals under the generator', async () => {
   assert.match(html, /2 free replies, no signup/);
   assert.match(html, /Made in Surprise, Arizona/);
 });
+
+test('generator is simplified: review + tone visible, other fields under More options', async () => {
+  const html = await (await req('/')).text();
+  const more = html.slice(html.indexOf('<details class="more">'), html.indexOf('</details>', html.indexOf('<details class="more">')));
+  for (const id of ['length', 'rating', 'businessName', 'businessType', 'city', 'service']) assert.ok(more.includes(`id="${id}"`), id + ' in More options');
+  assert.ok(!more.includes('id="tone"') && !more.includes('id="review"'));
+  assert.ok(html.indexOf('id="generator"') < html.indexOf('id="how"'), 'generator near the top');
+  assert.match(html, /btn btn-lg" id="genBtn"/);
+});

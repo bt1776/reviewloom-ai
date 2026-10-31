@@ -251,3 +251,10 @@ test('homepage has a before/after example and a Try an example button', async ()
   assert.match(html, /id="exampleBtn"/);
   assert.match(await (await req('/app.js')).text(), /EXAMPLE_REVIEW/);
 });
+
+test('homepage trust signals under the generator', async () => {
+  const html = await (await req('/')).text();
+  assert.match(html, /class="trust"/);
+  assert.match(html, /2 free replies, no signup/);
+  assert.match(html, /Made in Surprise, Arizona/);
+});

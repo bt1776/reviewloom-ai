@@ -267,3 +267,14 @@ test('generator is simplified: review + tone visible, other fields under More op
   assert.ok(html.indexOf('id="generator"') < html.indexOf('id="how"'), 'generator near the top');
   assert.match(html, /btn btn-lg" id="genBtn"/);
 });
+
+test('every page shares the same nav and a column footer', async () => {
+  const pages = fs.readdirSync(path.join(__dirname, '..', 'public')).filter(f => f.endsWith('.html'));
+  let nav0;
+  for (const f of pages) {
+    const html = fs.readFileSync(path.join(__dirname, '..', 'public', f), 'utf8');
+    const nav = html.match(/<header class="nav">[\s\S]*?<\/header>/)[0];
+    nav0 = nav0 || nav; assert.strictEqual(nav, nav0, f + ' nav');
+    for (const h of ['Guides', 'Examples', 'Free tools', 'Company']) assert.ok(html.includes(`<h4>${h}</h4>`), f + ' footer ' + h);
+  }
+});

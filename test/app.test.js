@@ -278,3 +278,8 @@ test('every page shares the same nav and a column footer', async () => {
     for (const h of ['Guides', 'Examples', 'Free tools', 'Company']) assert.ok(html.includes(`<h4>${h}</h4>`), f + ' footer ' + h);
   }
 });
+
+test('Pro card is highlighted with Most popular badge', async () => {
+  const html = await (await req('/')).text();
+  assert.match(html, /class="card hl pro"><span class="badge">Most popular<\/span>/);
+});

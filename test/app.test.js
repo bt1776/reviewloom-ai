@@ -283,3 +283,9 @@ test('Pro card is highlighted with Most popular badge', async () => {
   const html = await (await req('/')).text();
   assert.match(html, /class="card hl pro"><span class="badge">Most popular<\/span>/);
 });
+
+test('guide pages have a sticky mobile CTA to the generator; homepage does not', async () => {
+  const g = await (await req('/how-to-respond-to-google-reviews.html')).text();
+  assert.match(g, /class="sticky-cta" href="\/#generator">Write my reply free</);
+  assert.doesNotMatch(await (await req('/')).text(), /sticky-cta/);
+});

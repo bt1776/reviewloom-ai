@@ -244,3 +244,10 @@ test('homepage Pro pricing copy matches the founder offer', async () => {
   assert.doesNotMatch(html, /Go Pro for \$9/);
   assert.match(html, /code FOUNDER/);
 });
+
+test('homepage has a before/after example and a Try an example button', async () => {
+  const html = await (await req('/')).text();
+  assert.match(html, /class="sample"/);
+  assert.match(html, /id="exampleBtn"/);
+  assert.match(await (await req('/app.js')).text(), /EXAMPLE_REVIEW/);
+});

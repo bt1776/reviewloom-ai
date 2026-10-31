@@ -60,3 +60,12 @@ function showUpsell(j) {
   if (!j.signedIn) { const s = document.createElement('a'); s.className = 'btn ghost'; s.href = '/account'; s.textContent = 'Sign in free'; row.append(s); }
   box.append(h, p, row); e.append(box);
 }
+
+const EXAMPLE_REVIEW = 'Waited 25 minutes for two lattes and nobody said a word. Coffee was good but the wait was ridiculous.';
+const exBtn = $('exampleBtn');
+if (exBtn) exBtn.addEventListener('click', () => {
+  $('review').value = EXAMPLE_REVIEW; $('tone').value = 'apologetic';
+  if (!$('businessName').value) $('businessName').value = 'Desert Bloom Cafe';
+  if (!$('businessType').value) $('businessType').value = 'cafe';
+  $('review').focus();
+});

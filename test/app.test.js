@@ -235,3 +235,12 @@ test('review link generator: Place ID extraction, link, templates, page', async 
   assert.match(h, /FAQPage/); assert.match(h, /how-to-ask-customers-for-google-reviews/); assert.match(h, /vendor\/qrcode\.js/);
   assert.match(await (await req('/sitemap.xml')).text(), /google-review-link-generator/);
 });
+
+test('homepage Pro pricing copy matches the founder offer', async () => {
+  const html = await (await req('/')).text();
+  assert.match(html, /<s class="was">\$9<\/s> \$5/);
+  assert.match(html, /Founder price, first 25 users/);
+  assert.match(html, /Go Pro for \$5\/mo/);
+  assert.doesNotMatch(html, /Go Pro for \$9/);
+  assert.match(html, /code FOUNDER/);
+});

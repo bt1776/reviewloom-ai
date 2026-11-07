@@ -289,3 +289,32 @@ test('guide pages have a sticky mobile CTA to the generator; homepage does not',
   assert.match(g, /class="sticky-cta" href="\/#generator">Write my reply free</);
   assert.doesNotMatch(await (await req('/')).text(), /sticky-cta/);
 });
+
+test('events: POST /api/event stores allowed events; /admin/funnel counts by event and src', async () => {
+  process.env.ADMIN_TOKEN = 'admin-test-token';
+  const bad = await req('/api/event', { method: 'POST', body: { name: 'evil' } });
+  assert.strictEqual(bad.status, 400);
+  for (const name of ['landing_view', 'landing_view', 'generator_use', 'pro_click'])
+    assert.strictEqual((await req('/api/event', { method: 'POST', body: { name, page: '/google-review-replies-for-auto-shops.html?x=1', src: 'auto-shops', utm_source: 'x<script>' } })).status, 204);
+  await req('/api/event', { method: 'POST', body: { name: 'signup_start', page: '/account' } });
+  assert.strictEqual((await req('/admin/funnel')).status, 401);
+  const r = await req('/admin/funnel', { headers: { Authorization: 'Bearer admin-test-token' } });
+  assert.strictEqual(r.status, 200);
+  const j = await r.json();
+  for (const w of ['1d', '7d', '30d']) assert.ok(j.windows[w]);
+  assert.strictEqual(j.windows['1d'].totals.landing_view, 2);
+  assert.strictEqual(j.windows['30d'].by_src['auto-shops'].generator_use, 1);
+  assert.strictEqual(j.windows['7d'].by_src['(none)'].signup_start, 1);
+  const raw = JSON.stringify(await store.funnel(1));
+  assert.doesNotMatch(raw, /127\.0\.0\.1|node/);
+});
+
+test('auto-shop landing page: served, FAQ schema, tracking, sitemap', async () => {
+  const r = await req('/google-review-replies-for-auto-shops.html');
+  assert.strictEqual(r.status, 200);
+  const h = await r.text();
+  assert.match(h, /FAQPage/); assert.match(h, /Why not just use ChatGPT\?/);
+  assert.match(h, /\?src=auto-shops#generator/); assert.match(h, /FOUNDER/); assert.match(h, /track\.js/);
+  assert.match(await (await req('/sitemap.xml')).text(), /google-review-replies-for-auto-shops/);
+  assert.strictEqual((await req('/track.js')).status, 200);
+});

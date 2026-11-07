@@ -32,6 +32,7 @@ $('genForm').addEventListener('submit', async e => {
       if (r.status === 429) { showUpsell(j); throw null; }
       throw err;
     }
+    if (window.rlTrack) rlTrack('generator_use');
     $('results').innerHTML = '';
     j.replies.forEach((t, i) => {
       const d = document.createElement('div'); d.className = 'reply';

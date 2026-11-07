@@ -397,6 +397,29 @@ function createApp({ store, stripe } = {}) {
     res.json({ dryRun: false, count: results.length, results });
   }));
 
+  // ---- first-party event tracking (no IPs or user agents stored) ----
+  const EVENTS = ['landing_view', 'generator_use', 'signup_start', 'pro_click', 'newsletter_optin'];
+  const tag = (v, n = 80) => { const t = String(v == null ? '' : v).replace(/[^\w.\-\/ +]/g, '').trim().slice(0, n); return t || null; };
+  app.post('/api/event', wrapA(async (req, res) => {
+    const b = req.body || {};
+    if (!EVENTS.includes(b.name)) return res.status(400).json({ error: 'Unknown event.' });
+    if (!allow('ev:' + req.ip, 300, 36e5)) return res.status(429).json({ error: 'Too many events.' });
+    let page = String(b.page || '').split(/[?#]/)[0];
+    if (!page.startsWith('/')) page = '/';
+    await store.addEvent({ name: b.name, page: tag(page, 200), src: tag(b.src, 60), utm_source: tag(b.utm_source), utm_medium: tag(b.utm_medium), utm_campaign: tag(b.utm_campaign) });
+    res.status(204).end();
+  }));
+  app.get('/admin/funnel', adminAuth, wrapA(async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    const out = { generated_at: new Date().toISOString(), events: EVENTS, windows: {} };
+    for (const d of [1, 7, 30]) {
+      const rows = await store.funnel(d), totals = Object.fromEntries(EVENTS.map(e => [e, 0])), bySrc = {};
+      for (const r of rows) { totals[r.name] = (totals[r.name] || 0) + r.count; const k = r.src || '(none)'; (bySrc[k] = bySrc[k] || {})[r.name] = r.count; }
+      out.windows[d + 'd'] = { totals, by_src: bySrc };
+    }
+    res.json(out);
+  }));
+
   app.get('/healthz', (_, res) => res.json({ ok: true, llm: !!(process.env.XAI_API_KEY || process.env.OPENAI_API_KEY), store: store.kind }));
 
   app.use((err, req, res, next) => { console.error('Error:', err.message); if (res.headersSent) return next(err); res.status(500).json({ error: 'Something went wrong. Please try again.' }); });

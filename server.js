@@ -148,7 +148,14 @@ function createApp({ store, stripe } = {}) {
   const wrapA = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
   function limitFor(user) { return !user ? ANON_LIMIT : user.pro ? Infinity : FREE_LIMIT; }
-  const subjectFor = (req, user) => (user ? 'user:' + user.id : 'ip:' + req.ip);
+  // Render fronts every service with Cloudflare, which sets CF-Connecting-IP to the real client and overwrites any
+  // client-supplied value. req.ip (trust proxy 1) is a rotating Render/Cloudflare hop, so per-IP limits never held.
+  const BEHIND_PROXY = !!(process.env.TRUST_PROXY || process.env.RENDER);
+  const clientIp = req => {
+    const cf = BEHIND_PROXY && String(req.get('cf-connecting-ip') || '').trim();
+    return cf && /^[0-9a-fA-F:.]{3,45}$/.test(cf) ? cf : req.ip;
+  };
+  const subjectFor = (req, user) => (user ? 'user:' + user.id : 'ip:' + clientIp(req));
   async function usageInfo(req, user) {
     const used = await store.getUsage(subjectFor(req, user), today()), limit = limitFor(user);
     return { used, limit: Number.isFinite(limit) ? limit : null, remaining: Number.isFinite(limit) ? Math.max(0, limit - used) : null };
@@ -213,7 +220,7 @@ function createApp({ store, stripe } = {}) {
   app.post('/api/auth/request', wrapA(async (req, res) => {
     const email = cleanEmail((req.body || {}).email);
     if (!validEmail(email)) return res.status(400).json({ error: 'Please enter a valid email.' });
-    if (!allow('e:' + email, 5, 15 * 6e4) || !allow('i:' + req.ip, 20, 36e5)) return res.status(429).json({ error: 'Too many sign-in requests. Please wait a few minutes and try again.' });
+    if (!allow('e:' + email, 5, 15 * 6e4) || !allow('i:' + clientIp(req), 20, 36e5)) return res.status(429).json({ error: 'Too many sign-in requests. Please wait a few minutes and try again.' });
     const token = crypto.randomBytes(32).toString('base64url');
     await store.saveToken(sha256(token), email, new Date(Date.now() + TOKEN_MIN * 6e4));
     const link = `${baseUrl(req)}/auth/verify?token=${token}`;
@@ -302,7 +309,7 @@ function createApp({ store, stripe } = {}) {
     const b = req.body || {};
     const review = String(b.review || '').trim().slice(0, 3000), reply = String(b.reply || '').trim().slice(0, 3000);
     if (review.length < 3 || reply.length < 3) return res.status(400).json({ error: 'Please paste both the review and your reply.' });
-    if (!allow('g:' + req.ip, Number(process.env.GRADE_HOURLY_LIMIT) || 20, 36e5)) return res.status(429).json({ error: 'Too many grades this hour. Please try again later.' });
+    if (!allow('g:' + clientIp(req), Number(process.env.GRADE_HOURLY_LIMIT) || 20, 36e5)) return res.status(429).json({ error: 'Too many grades this hour. Please try again later.' });
     const rating = [1, 2, 3, 4, 5].includes(Number(b.rating)) ? Number(b.rating) : null;
     let out = null;
     try { const g = await llmGrade(review, reply, rating); if (g) out = { source: 'llm', ...g }; }
@@ -356,7 +363,7 @@ function createApp({ store, stripe } = {}) {
     const email = cleanEmail((req.body || {}).email);
     if (!validEmail(email)) return res.status(400).json({ error: 'Please enter a valid email.' });
     if (process.env.BUTTONDOWN_API_KEY) {
-      try { await buttondownSubscribe(email, req.ip); return res.json({ ok: true }); }
+      try { await buttondownSubscribe(email, clientIp(req)); return res.json({ ok: true }); }
       catch (e) { console.error('Buttondown subscribe failed, saving locally:', e.message); }
     }
     try { saveLocal(email); } catch (e) { console.error('Local subscriber save failed:', e.message); return res.status(500).json({ error: 'Could not subscribe right now. Please try again.' }); }
@@ -403,7 +410,7 @@ function createApp({ store, stripe } = {}) {
   app.post('/api/event', wrapA(async (req, res) => {
     const b = req.body || {};
     if (!EVENTS.includes(b.name)) return res.status(400).json({ error: 'Unknown event.' });
-    if (!allow('ev:' + req.ip, 300, 36e5)) return res.status(429).json({ error: 'Too many events.' });
+    if (!allow('ev:' + clientIp(req), 300, 36e5)) return res.status(429).json({ error: 'Too many events.' });
     let page = String(b.page || '').split(/[?#]/)[0];
     if (!page.startsWith('/')) page = '/';
     await store.addEvent({ name: b.name, page: tag(page, 200), src: tag(b.src, 60), utm_source: tag(b.utm_source), utm_medium: tag(b.utm_medium), utm_campaign: tag(b.utm_campaign) });

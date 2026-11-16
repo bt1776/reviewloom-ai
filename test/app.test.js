@@ -318,3 +318,18 @@ test('auto-shop landing page: served, FAQ schema, tracking, sitemap', async () =
   assert.match(await (await req('/sitemap.xml')).text(), /google-review-replies-for-auto-shops/);
   assert.strictEqual((await req('/track.js')).status, 200);
 });
+
+test('behind Render proxy, anonymous quota keys on CF-Connecting-IP, not the rotating proxy hop', async () => {
+  process.env.RENDER = 'true';
+  const s2 = createApp({ store, stripe }).listen(0, '127.0.0.1');
+  delete process.env.RENDER;
+  await new Promise(r => s2.once('listening', r));
+  const b2 = `http://127.0.0.1:${s2.address().port}`;
+  const g = (ip, hop) => fetch(b2 + '/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': ip, 'X-Forwarded-For': hop }, body: JSON.stringify({ review: 'Lovely service, thanks!' }) });
+  try {
+    assert.strictEqual((await g('203.0.113.77', '10.0.0.1')).status, 200);
+    assert.strictEqual((await g('203.0.113.77', '10.0.0.2')).status, 200);
+    assert.strictEqual((await g('203.0.113.77', '10.0.0.3')).status, 429);
+    assert.strictEqual((await g('203.0.113.78', '10.0.0.3')).status, 200);
+  } finally { s2.close(); }
+});

@@ -422,7 +422,12 @@ function createApp({ store, stripe } = {}) {
     for (const d of [1, 7, 30]) {
       const rows = await store.funnel(d), totals = Object.fromEntries(EVENTS.map(e => [e, 0])), bySrc = {};
       for (const r of rows) { totals[r.name] = (totals[r.name] || 0) + r.count; const k = r.src || '(none)'; (bySrc[k] = bySrc[k] || {})[r.name] = r.count; }
-      out.windows[d + 'd'] = { totals, by_src: bySrc };
+      // by_page: which pages visitors land on and where they convert (top 25 pages by total events).
+      const byPage = {};
+      for (const r of await store.funnelPages(d)) { const k = r.page || '(none)'; (byPage[k] = byPage[k] || {})[r.name] = r.count; }
+      const sum = o => Object.values(o).reduce((a, b) => a + b, 0);
+      const topPages = Object.fromEntries(Object.entries(byPage).sort((a, b) => sum(b[1]) - sum(a[1])).slice(0, 25));
+      out.windows[d + 'd'] = { totals, by_src: bySrc, by_page: topPages };
     }
     res.json(out);
   }));

@@ -305,6 +305,9 @@ test('events: POST /api/event stores allowed events; /admin/funnel counts by eve
   assert.strictEqual(j.windows['1d'].totals.landing_view, 2);
   assert.strictEqual(j.windows['30d'].by_src['auto-shops'].generator_use, 1);
   assert.strictEqual(j.windows['7d'].by_src['(none)'].signup_start, 1);
+  assert.strictEqual(j.windows['1d'].by_page['/google-review-replies-for-auto-shops.html'].landing_view, 2);
+  assert.strictEqual(j.windows['1d'].by_page['/google-review-replies-for-auto-shops.html'].generator_use, 1);
+  assert.strictEqual(j.windows['7d'].by_page['/account'].signup_start, 1);
   const raw = JSON.stringify(await store.funnel(1));
   assert.doesNotMatch(raw, /127\.0\.0\.1|node/);
 });

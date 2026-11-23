@@ -56,3 +56,4 @@ body>section,main>section{margin:88px auto}body>section.hero{margin:0}
 .hero .gen .small{color:#6b7280;font-weight:400}.hero .gen .btn{background:#4f46e5;color:#fff}
 body>section.wrap,main>section.wrap{margin-top:88px;margin-bottom:88px}
 @media (max-width:600px){body>section.wrap,main>section.wrap{margin-top:56px;margin-bottom:56px}}
+.mini-gen{margin:24px 0;text-align:left}.mini-gen h3{margin:0 0 12px;font-size:1.2rem}.mg-row{display:grid;grid-template-columns:1fr 1fr 2fr;gap:12px}.mg-note{margin-left:8px}@media (max-width:600px){.mg-row{grid-template-columns:1fr 1fr}.mg-row label:last-child{grid-column:1/-1}}

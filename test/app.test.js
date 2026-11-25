@@ -294,7 +294,7 @@ test('events: POST /api/event stores allowed events; /admin/funnel counts by eve
   process.env.ADMIN_TOKEN = 'admin-test-token';
   const bad = await req('/api/event', { method: 'POST', body: { name: 'evil' } });
   assert.strictEqual(bad.status, 400);
-  for (const name of ['landing_view', 'landing_view', 'generator_use', 'pro_click'])
+  for (const name of ['landing_view', 'landing_view', 'engaged', 'generator_start', 'generator_use', 'pro_click'])
     assert.strictEqual((await req('/api/event', { method: 'POST', body: { name, page: '/google-review-replies-for-auto-shops.html?x=1', src: 'auto-shops', utm_source: 'x<script>' } })).status, 204);
   await req('/api/event', { method: 'POST', body: { name: 'signup_start', page: '/account' } });
   assert.strictEqual((await req('/admin/funnel')).status, 401);
@@ -304,6 +304,8 @@ test('events: POST /api/event stores allowed events; /admin/funnel counts by eve
   for (const w of ['1d', '7d', '30d']) assert.ok(j.windows[w]);
   assert.strictEqual(j.windows['1d'].totals.landing_view, 2);
   assert.strictEqual(j.windows['30d'].by_src['auto-shops'].generator_use, 1);
+  assert.strictEqual(j.windows['1d'].totals.engaged, 1);
+  assert.strictEqual(j.windows['1d'].totals.generator_start, 1);
   assert.strictEqual(j.windows['7d'].by_src['(none)'].signup_start, 1);
   assert.strictEqual(j.windows['1d'].by_page['/google-review-replies-for-auto-shops.html'].landing_view, 2);
   assert.strictEqual(j.windows['1d'].by_page['/google-review-replies-for-auto-shops.html'].generator_use, 1);

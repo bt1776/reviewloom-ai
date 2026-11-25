@@ -13,6 +13,16 @@
   }
   window.rlTrack = track;
   track('landing_view');
+  // engaged: first real interaction (scroll, tap, key) on this page view, to separate humans from JS-running bots.
+  var engaged = false;
+  function onEngage() { if (engaged) return; engaged = true; track('engaged'); ['scroll', 'pointerdown', 'keydown', 'touchstart'].forEach(function (t) { window.removeEventListener(t, onEngage, true); }); }
+  ['scroll', 'pointerdown', 'keydown', 'touchstart'].forEach(function (t) { window.addEventListener(t, onEngage, { capture: true, passive: true }); });
+  // generator_start: visitor began typing a review into a generator (homepage or inline guide generator).
+  var started = false;
+  document.addEventListener('input', function (e) {
+    var t = e.target; if (started || !t || t.tagName !== 'TEXTAREA') return;
+    if (t.closest && t.closest('#genForm, .mg-form')) { started = true; track('generator_start'); }
+  }, true);
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a,button'); if (!a) return;
     var href = a.getAttribute('href') || '';

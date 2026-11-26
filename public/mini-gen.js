@@ -12,11 +12,33 @@
     '<div class="mg-row"><label>Stars<select class="mg-rating"><option value="">Any</option><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></label>' +
     '<label>Tone<select class="mg-tone"><option value="warm">Warm</option><option value="professional">Professional</option><option value="upbeat">Upbeat</option><option value="apologetic">Apologetic</option></select></label>' +
     '<label>Business name (optional)<input class="mg-biz" maxlength="80"></label></div>' +
-    '<button class="btn mg-btn" type="submit"></button> <span class="small mg-note">2 free replies, no sign-in. <a href="/#generator">More options</a></span>' +
+    '<button class="btn mg-btn" type="submit"></button> <span class="small mg-note">2 free replies, no sign-in. <button type="button" class="linkish mg-sample">Try a sample review</button> · <a href="/#generator">More options</a></span>' +
     '<p class="err mg-err"></p><div class="mg-results"></div></form>';
   var q = function (s) { return box.querySelector(s); };
   q('.mg-btn').textContent = label;
   host.parentNode.replaceChild(box, host);
+  // Sample review matched to the guide, so curious readers can see output without having a review handy.
+  var path = location.pathname, sample = { text: 'Friendly staff and quick service. They explained everything clearly and the price was fair. Will be back!', rating: '5' };
+  if (/price|expensive/.test(path)) sample = { text: 'Way overpriced. Paid almost double what I expected and nobody told me about the extra fees until the end.', rating: '2' };
+  else if (/1-star|negative|fake|fault/.test(path)) sample = { text: 'Terrible experience. Waited over an hour past my appointment and nobody even apologized. Never coming back.', rating: '1' };
+  else if (/2-star|3-star|old-reviews|employees/.test(path)) sample = { text: 'Service was okay but slow. The front desk seemed overwhelmed and it took three calls to get an update.', rating: '3' };
+  else if (/4-star/.test(path)) sample = { text: 'Great work overall and fair price. Only reason it is not 5 stars is they showed up 30 minutes late.', rating: '4' };
+  else if (/no-text/.test(path)) sample = { text: '(5 stars, no written review)', rating: '5' };
+  q('.mg-sample').addEventListener('click', function () {
+    var ta = q('.mg-review'); ta.value = sample.text; q('.mg-rating').value = sample.rating;
+    ta.dispatchEvent(new Event('input', { bubbles: true })); q('.mg-btn').focus();
+  });
+  // Guide CTAs sit near the bottom; give readers who already have a review an early jump link.
+  var intro = document.querySelector('article.prose > p:not(.small)');
+  if (intro && intro.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING) {
+    var jp = document.createElement('p'); jp.className = 'mg-jump';
+    var ja = document.createElement('a'); ja.href = '#mini-generator'; ja.textContent = 'Have a review to answer right now? Paste it into the free reply writer \u2193';
+    ja.addEventListener('click', function (e) {
+      e.preventDefault(); if (window.rlTrack) window.rlTrack('generator_jump');
+      box.scrollIntoView({ behavior: 'smooth', block: 'start' }); setTimeout(function () { q('.mg-review').focus({ preventScroll: true }); }, 400);
+    });
+    jp.appendChild(ja); intro.parentNode.insertBefore(jp, intro.nextSibling);
+  }
   q('.mg-form').addEventListener('submit', function (e) {
     e.preventDefault();
     var btn = q('.mg-btn'), err = q('.mg-err'), out = q('.mg-results');

@@ -405,7 +405,7 @@ function createApp({ store, stripe } = {}) {
   }));
 
   // ---- first-party event tracking (no IPs or user agents stored) ----
-  const EVENTS = ['landing_view', 'engaged', 'generator_jump', 'generator_start', 'generator_use', 'signup_start', 'pro_click', 'newsletter_optin'];
+  const EVENTS = ['landing_view', 'engaged', 'generator_jump', 'generator_start', 'generator_use', 'generator_limit', 'generator_error', 'signup_start', 'pro_click', 'newsletter_optin'];
   const tag = (v, n = 80) => { const t = String(v == null ? '' : v).replace(/[^\w.\-\/ +]/g, '').trim().slice(0, n); return t || null; };
   app.post('/api/event', wrapA(async (req, res) => {
     const b = req.body || {};

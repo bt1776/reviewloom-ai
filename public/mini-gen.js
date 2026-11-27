@@ -48,6 +48,7 @@
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { r: r, j: j }; }); })
       .then(function (x) {
         if (!x.r.ok) {
+          if (window.rlTrack) window.rlTrack(x.r.status === 429 ? 'generator_limit' : 'generator_error');
           err.textContent = x.j.error || 'Something went wrong. Please try again.';
           if (x.r.status === 429) { var a = document.createElement('a'); a.className = 'btn'; a.href = x.j.signedIn ? '/account?upgrade=1' : '/account'; a.textContent = x.j.signedIn ? 'Go Pro' : 'Sign in free for 5 a day'; err.append(' ', a); }
           return;
@@ -62,7 +63,7 @@
         });
         if (x.j.usage && x.j.usage.remaining != null) { var n = document.createElement('p'); n.className = 'small'; n.textContent = x.j.usage.remaining + ' free replies left today. Unlimited with ReviewLoom AI Pro.'; out.append(n); }
       })
-      .catch(function () { err.textContent = 'Network error. Please try again.'; })
+      .catch(function () { if (window.rlTrack) window.rlTrack('generator_error'); err.textContent = 'Network error. Please try again.'; })
       .then(function () { btn.disabled = false; btn.textContent = label; });
   });
 })();

@@ -29,6 +29,7 @@ $('genForm').addEventListener('submit', async e => {
     if (j.usage) showQuota(j.usage);
     if (!r.ok) {
       const err = new Error(j.error || 'Something went wrong');
+      if (window.rlTrack) rlTrack(r.status === 429 ? 'generator_limit' : 'generator_error');
       if (r.status === 429) { showUpsell(j); throw null; }
       throw err;
     }
@@ -40,7 +41,7 @@ $('genForm').addEventListener('submit', async e => {
       b.onclick = () => navigator.clipboard.writeText(t).then(() => { b.textContent = 'Copied!'; setTimeout(() => b.textContent = 'Copy', 1500); });
       d.append(b, document.createTextNode(`Option ${i + 1}: ${t}`)); $('results').append(d);
     });
-  } catch (x) { if (x) $('err').textContent = x.message; }
+  } catch (x) { if (x) { $('err').textContent = x.message; if (x instanceof TypeError && window.rlTrack) rlTrack('generator_error'); } }
   $('genBtn').disabled = false; $('genBtn').textContent = 'Generate replies';
 });
 $('newsForm').addEventListener('submit', async e => {
